@@ -10,6 +10,14 @@
         force_apt_get: yes
         cache_valid_time: 3600
 
+    - name: Fix broken dependencies (if any)
+      apt:
+        name: "*"
+        state: latest
+        force_apt_get: yes
+        update_cache: yes
+        upgrade: dist
+
     - name: Install Docker dependencies
       apt:
         name: 
@@ -29,11 +37,26 @@
         repo: deb https://download.docker.com/linux/ubuntu focal stable
         state: present
 
+    - name: Purge any existing Docker installation (if present)
+      apt:
+        name: docker-ce
+        purge: yes
+        state: absent
+      ignore_errors: yes
+
     - name: Install Docker
       apt:
         name: docker-ce
         state: present
         update_cache: yes
+      register: docker_install
+
+    - name: Handle Docker installation failure (retry installation)
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+      when: docker_install.failed
 
     - name: Start and enable Docker service
       systemd:
@@ -42,7 +65,6 @@
         state: started
 
     - name: Install Docker Compose
-      become: true
       get_url:
         url: "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
         dest: /usr/local/bin/docker-compose
