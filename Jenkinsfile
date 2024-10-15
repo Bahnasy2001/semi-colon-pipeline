@@ -24,32 +24,40 @@ pipeline {
                 sh "docker compose -f docker-compose-testing.yml up -d --build"
             }
         }
+        // stage('build') {
+        //     steps {
+        //         withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+        //             // // Build Docker image
+        //             // sh 'docker build . -t hassanbahnasy/semi-colon'
+                    
+        //             // // Log in to Docker Hub
+        //             // sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
+                    
+        //             // // Push Docker image to Docker Hub
+        //             // sh 'docker push hassanbahnasy/semi-colon'
+                    
+        //         }
+        //     }
+        // }
         stage('build') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    // // Build Docker image
-                    // sh 'docker build . -t hassanbahnasy/semi-colon'
-                    
-                    // // Log in to Docker Hub
-                    // sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
-                    
-                    // // Push Docker image to Docker Hub
-                    // sh 'docker push hassanbahnasy/semi-colon'
-                    // Define the image name with the build number as a tag
-                    def imageName = "hassanbahnasy/semi-colon:${BUILD_NUMBER}"
-                    
-                    // Build Docker image with the unique tag
-                    sh "docker build . -t ${imageName}"
-                    
-                    // Log in to Docker Hub
-                    sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
-                    
-                    // Push Docker image to Docker Hub
-                    sh "docker push ${imageName}"
+                    script {
+                        // Define the image name with the build number as a tag
+                        def imageName = "hassanbahnasy/semi-colon:${BUILD_NUMBER}"
+                        
+                        // Build Docker image with the unique tag
+                        sh "docker build . -t ${imageName}"
+                        
+                        // Log in to Docker Hub
+                        sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
+                        
+                        // Push Docker image to Docker Hub
+                        sh "docker push ${imageName}"
+                    }
                 }
             }
         }
-        
 
         stage('Provision Infrastructure') {
             steps {
