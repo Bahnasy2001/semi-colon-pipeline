@@ -24,51 +24,32 @@ pipeline {
                 sh "docker compose -f docker-compose-testing.yml up -d --build"
             }
         }
-        // stage('build') {
-        //     steps {
-        //         withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-        //             // Build Docker image
-        //             sh 'docker build . -t hassanbahnasy/semi-colon'
-                    
-        //             // Log in to Docker Hub
-        //             sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
-                    
-        //             // Push Docker image to Docker Hub
-        //             sh 'docker push hassanbahnasy/semi-colon'
-        //         }
-        //     }
-        // }
-        stage('Build and Push Docker Image') {
+        stage('build') {
             steps {
-                script {
-                    // Define the image name and tag using Git commit hash or a timestamp
-                    def imageTag = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    def imageName = "hassanbahnasy/semi-colon:${imageTag}"
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    // // Build Docker image
+                    // sh 'docker build . -t hassanbahnasy/semi-colon'
                     
-                    // Build the Docker image
+                    // // Log in to Docker Hub
+                    // sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
+                    
+                    // // Push Docker image to Docker Hub
+                    // sh 'docker push hassanbahnasy/semi-colon'
+                    // Define the image name with the build number as a tag
+                    def imageName = "hassanbahnasy/semi-colon:${BUILD_NUMBER}"
+                    
+                    // Build Docker image with the unique tag
                     sh "docker build . -t ${imageName}"
-
-                    // Check if the image already exists on Docker Hub
-                    def imageExists = sh(script: "docker manifest inspect ${imageName}", returnStatus: true)
-
-                    if (imageExists != 0) {
-                        // Log in to Docker Hub
-                        sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
-
-                        // Push Docker image to Docker Hub
-                        sh "docker push ${imageName}"
-
-                        // Optionally, tag as 'latest' and push
-                        sh "docker tag ${imageName} hassanbahnasy/semi-colon:latest"
-                        sh "docker push hassanbahnasy/semi-colon:latest"
-
-                        echo "Docker image ${imageName} pushed successfully."
-                    } else {
-                        echo "No changes detected, Docker image ${imageName} already exists. Skipping push."
-                    }
+                    
+                    // Log in to Docker Hub
+                    sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
+                    
+                    // Push Docker image to Docker Hub
+                    sh "docker push ${imageName}"
                 }
             }
         }
+        
 
         stage('Provision Infrastructure') {
             steps {
