@@ -91,7 +91,7 @@ resource "azurerm_virtual_machine" "vm" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "20.04-LTS"
+    sku       = "22_04-lts"
     version   = "latest"
   }
   # Define the operating system disk
