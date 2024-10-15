@@ -12,28 +12,25 @@
 
     - name: Install Docker dependencies
       apt:
-        name: 
+        name:
           - apt-transport-https
           - ca-certificates
           - curl
           - software-properties-common
         state: present
 
-    - name: Add Docker GPG key
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+    - name: Fix broken Docker installation
+      shell: |
+        sudo dpkg --configure -a
+        sudo apt-get install -f
+      become: true
 
-    - name: Add Docker repository
-      apt_repository:
-        repo: deb https://download.docker.com/linux/ubuntu focal stable
-        state: present
-
-    - name: Install Docker
+    - name: Reinstall Docker CE
       apt:
         name: docker-ce
-        state: present
+        state: latest
         update_cache: yes
+      become: true
 
     - name: Start and enable Docker service
       systemd:
