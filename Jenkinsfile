@@ -6,7 +6,8 @@ pipeline {
         AZURE_CLIENT_ID = '1f81f02e-3e45-4843-bb24-c3bfa7abc2ed' 
         AZURE_TENANT_ID = '35881919-2ba8-413a-992c-e6ae37259fc1' 
         AZURE_SUBSCRIPTION_ID = '2876b6d2-2be8-44cb-8742-6acd23ed4f18'
-}
+        STATE_DIR = "/var/lib/jenkins/terraform_state" // Specify a shared directory
+    }
     stages {
         stage('preparation') {
             steps {
@@ -58,16 +59,17 @@ pipeline {
                 }
             }
         }
-
         stage('Provision Infrastructure') {
             steps {
                 script {
+                    sh "mkdir -p ${STATE_DIR}"
+                    sh "cp -R terraform/* ${STATE_DIR}/"
                     // Set Terraform environment variables
                     withEnv(["TF_VAR_client_id=${AZURE_CLIENT_ID}", "TF_VAR_client_secret=${AZURE_CLIENT_SECRET}", "TF_VAR_tenant_id=${AZURE_TENANT_ID}", "TF_VAR_subscription_id=${AZURE_SUBSCRIPTION_ID}"]) {
                         // Use sshagent to load SSH credentials
                         sshagent(['bahnasy']) { 
-                            sh 'cd terraform && terraform init'
-                            sh 'cd terraform && terraform apply -auto-approve'
+                            sh "cd ${STATE_DIR} && terraform init"
+                            sh "cd ${STATE_DIR} && terraform apply -auto-approve"
                         }
                     }
                 }
