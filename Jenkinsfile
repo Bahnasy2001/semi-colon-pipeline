@@ -17,27 +17,27 @@ pipeline {
                 )
             }
         }
-        // stage('build') {
-        //     steps {
-        //         withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-        //             // Build Docker image
-        //             sh 'docker build . -t hassanbahnasy/semi-colon'
+        stage('build') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    // Build Docker image
+                    sh 'docker build . -t hassanbahnasy/semi-colon'
                     
-        //             // Log in to Docker Hub
-        //             sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
+                    // Log in to Docker Hub
+                    sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
                     
-        //             // Push Docker image to Docker Hub
-        //             sh 'docker push hassanbahnasy/semi-colon'
-        //         }
-        //     }
-        // }
-        // stage('test') {
-        //     steps {
-        //         echo "docker compose"
-        //         sh "docker compose -f docker-compose-testing.yml down --remove-orphans"
-        //         sh "docker compose -f docker-compose-testing.yml up -d --build"
-        //     }
-        // }
+                    // Push Docker image to Docker Hub
+                    sh 'docker push hassanbahnasy/semi-colon'
+                }
+            }
+        }
+        stage('test') {
+            steps {
+                echo "docker compose"
+                sh "docker compose -f docker-compose-testing.yml down --remove-orphans"
+                sh "docker compose -f docker-compose-testing.yml up -d --build"
+            }
+        }
         stage('Provision Infrastructure') {
             steps {
                 script {
